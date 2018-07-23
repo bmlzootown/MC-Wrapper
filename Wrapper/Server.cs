@@ -16,9 +16,6 @@ namespace Wrapper {
         static System.Timers.Timer warnTimer;
         static System.Timers.Timer restartTimer;
         static DateTime restartTime;
-        static int[] timeRemains = new int[warnTimes.Length];
-        //public static Dictionary<int, System.Timers.Timer> warnings = new Dictionary<int, System.Timers.Timer>();
-        //public static System.Timers.Timer[] warns;
         static Process mcproc;
         static StreamWriter input;
 
@@ -62,46 +59,17 @@ namespace Wrapper {
                 warnTimer.Dispose();
             }
 
-            for (int i = 0; i < warnTimes.Length; i++) {
-                DateTime dt = restartTime.AddSeconds(warnTimes[i] * -1);
-                TimeSpan ts = restartTime - dt;
-                int time = (int)ts.TotalSeconds;
-                timeRemains[i] = time;
-            }
-
             warnTimer = new System.Timers.Timer(1000);
             warnTimer.Elapsed += new ElapsedEventHandler(onWarnEvent);
             warnTimer.AutoReset = true;
             warnTimer.Enabled = true;
-            /*if (warnings.Count > 0) {
-                for (int i = 0; i < warnings.Count; i++) {
-                    warnings[i].Stop();
-                    warnings[i].Dispose();
-                }
-                warnings = new Dictionary<int, System.Timers.Timer>();
-            }
-
-            for (int i = 0; i < warnTimes.Length; i++) {
-                DateTime dt = restartTime.AddSeconds(warnTimes[i] * -1);
-                TimeSpan ts = dt - DateTime.Now;
-
-                if (ts.TotalSeconds > 0) {
-                    System.Timers.Timer t = new System.Timers.Timer(ts.TotalSeconds);
-                    t.Elapsed += (sender, e) => onWarnEvent(sender, e, warnTimes[i]);
-                    t.AutoReset = false;
-                    t.Enabled = true;
-
-                    warnings.Add(i, t);
-                }
-            }*/
         }
 
         private static void onWarnEvent(Object source, ElapsedEventArgs e) {
-            for (int i = 0; i < timeRemains.Length; i++) {
-                timeRemains[i]--;
-
-                if (timeRemains[i] == 0) {
-                    int time = warnTimes[i];
+            for (int i = 0; i < warnTimes.Length; i++) {
+                int tr = (int)TimeRemaining().TotalSeconds;
+                int time = warnTimes[i];
+                if (tr == time) {
                     if (time > 59) {
                         int minute = (time % 3600) / 60;
                         if (minute > 59) {
@@ -113,23 +81,8 @@ namespace Wrapper {
                     } else {
                         sendCommand(warnCommand + " Restarting server in " + time + " seconds!");
                     }
-                    timeRemains[i] = int.MaxValue;
                 }
             }
-
-            /*int time = 1;
-            if (time > 59) {
-                int minute = (time % 3600) / 60;
-                if (minute > 59) {
-                    int hour = time / 3600;
-                    sendCommand(warnCommand + " Restarting server in " + hour + " hours!");
-                } else {
-                    sendCommand(warnCommand + " Restarting server in " + minute + " minutes!");
-                }
-            } else {
-                sendCommand(warnCommand + " Restarting server in " + time + " seconds!");
-            }*/
-            ((System.Timers.Timer)source).Dispose();
         }
 
         // Stops timers
@@ -142,13 +95,6 @@ namespace Wrapper {
                 warnTimer.Stop();
                 warnTimer.Dispose();
             }
-            /*if (warnings.Count > 0) {
-                for (int i = 0; i < warnings.Count; i++) {
-                    warnings[i].Stop();
-                    warnings[i].Dispose();
-                }
-                warnings = new Dictionary<int, System.Timers.Timer>();
-            }*/
         }
 
         // ... Stop wrapper after 2 second delay, obviously?
@@ -172,7 +118,6 @@ namespace Wrapper {
             ProcessStartInfo ServerInfo = new ProcessStartInfo(@"java.exe", @"" + jvm + " -jar " + jar + " " + options);
             ServerInfo.WorkingDirectory = @"../";
             ServerInfo.UseShellExecute = false;
-            //ServerInfo.UseShellExecute = true;
             ServerInfo.RedirectStandardOutput = true;
             ServerInfo.RedirectStandardInput = true;
             ServerInfo.RedirectStandardError = true;
