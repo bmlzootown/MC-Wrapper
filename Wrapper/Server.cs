@@ -62,10 +62,10 @@ namespace Wrapper {
                 warnTimer.Dispose();
             }
 
+            int sec = ((h * 60) * 60) + (m * 60) + s;
+
             for (int i = 0; i < warnTimes.Length; i++) {
-                DateTime dt = restartTime.AddSeconds(warnTimes[i] * -1);
-                TimeSpan ts = restartTime - dt;
-                int time = (int)ts.TotalSeconds;
+                int time = sec - warnTimes[i];
                 timeRemains[i] = time;
             }
 
@@ -98,7 +98,23 @@ namespace Wrapper {
 
         private static void onWarnEvent(Object source, ElapsedEventArgs e) {
             for (int i = 0; i < timeRemains.Length; i++) {
-                timeRemains[i]--;
+                int tr = (int)TimeRemaining().TotalSeconds;
+                int time = warnTimes[i];
+                if (tr == time) {
+                    //int time = warnTimes[i];
+                    if (time > 59) {
+                        int minute = (time % 3600) / 60;
+                        if (minute > 59) {
+                            int hour = time / 3600;
+                            sendCommand(warnCommand + " Restarting server in " + hour + " hours!");
+                        } else {
+                            sendCommand(warnCommand + " Restarting server in " + minute + " minutes!");
+                        }
+                    } else {
+                        sendCommand(warnCommand + " Restarting server in " + time + " seconds!");
+                    }
+                }
+                /*timeRemains[i]--;
 
                 if (timeRemains[i] == 0) {
                     int time = warnTimes[i];
@@ -114,7 +130,7 @@ namespace Wrapper {
                         sendCommand(warnCommand + " Restarting server in " + time + " seconds!");
                     }
                     timeRemains[i] = int.MaxValue;
-                }
+                }*/
             }
 
             /*int time = 1;
@@ -129,7 +145,7 @@ namespace Wrapper {
             } else {
                 sendCommand(warnCommand + " Restarting server in " + time + " seconds!");
             }*/
-            ((System.Timers.Timer)source).Dispose();
+            //((System.Timers.Timer)source).Dispose();
         }
 
         // Stops timers
